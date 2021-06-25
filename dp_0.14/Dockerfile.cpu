@@ -15,5 +15,3 @@ RUN python -m deeppavlov download ${CONFIG_SYNT}
 
 RUN python -m deeppavlov install ${CONFIG_NER}
 RUN python -m deeppavlov download ${CONFIG_NER}
-
-EXPOSE 3000
