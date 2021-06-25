@@ -6,16 +6,16 @@ services:
         image: cnstntn/coref_dp_cpu:latest
         restart: always
         ports:
-            - 3000:3001
+            - 3023:3000
     syntax_ner:
         container_name: syntax_ner
         image: cnstntn/dp_0.14:latest
         restart: always
         ports:
-            - 3002:3002
-            - 3003:3003
+            - 3021:3021
+            - 3022:3022
         command: >
-            bash -c "python -m deeppavlov riseapi ru_syntagrus_joint_parsing -p 3002
-            & python -m deeppavlov riseapi ner_rus_bert -p 3003"
+            bash -c "python -m deeppavlov riseapi ru_syntagrus_joint_parsing -p 3021
+            & python -m deeppavlov riseapi ner_rus_bert -p 3022"
 
 
