@@ -1,0 +1,19 @@
+FROM python:3.6
+
+ENV TZ=Europe/Moscow
+
+COPY ./requirements.txt ./requirements.txt
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir cython
+RUN pip install --no-cache-dir -r ./requirements.txt
+
+ENV CONFIG_SYNT=ru_syntagrus_joint_parsing
+ENV CONFIG_NER=ner_rus_bert
+
+RUN python -m deeppavlov install ${CONFIG_SYNT} 
+RUN python -m deeppavlov download ${CONFIG_SYNT}
+
+RUN python -m deeppavlov install ${CONFIG_NER}
+RUN python -m deeppavlov download ${CONFIG_NER}
+
+EXPOSE 3000
