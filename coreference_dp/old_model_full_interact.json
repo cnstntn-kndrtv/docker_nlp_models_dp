@@ -1,0 +1,92 @@
+{
+  "chainer": {
+    "in": ["raw_text"],
+    "pipe": [{
+        "in": ["raw_text"],
+        "class_name": "ru_sent_tokenizer",
+        "out": ["sentences"]
+      },
+      {
+        "in": ["sentences"],
+        "class_name": "nltk_tokenizer",
+        "out": ["tokenized_sentences"]
+      },
+      {
+        "in": ["tokenized_sentences"],
+        "class_name": "coref_speaker_books",
+        "out": ["speakers", "doc_key"]
+      },
+      {
+        "in": ["tokenized_sentences"],
+        "class_name": "char_splitter",
+        "out": ["x_char"]
+      },
+      {
+        "in": ["x_char"],
+        "out": ["x_char"],
+        "fit_on": ["x_char"],
+        "id": "char_vocab",
+        "class_name": "simple_vocab",
+        "pad_with_zeros": true,
+        "save_path": "{MODELS_PATH}/rucor_char.dict",
+        "load_path": "{MODELS_PATH}/rucor_char.dict"
+      },
+      {
+        "id": "embedder",
+        "class_name": "fasttext",
+        "pad_zero": true,
+        "load_path": "{DOWNLOADS_PATH}/embeddings/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize.bin"
+      },
+      {
+        "in": ["tokenized_sentences", "speakers", "doc_key"],
+        "out": ["predicted_clusters", "mention_to_predicted"],
+        "main": true,
+        "class_name": "coref_model",
+        "train_on_gold": false,
+        "stop_decay": true,
+        "save_path": "{MODELS_PATH}/rucor_checkpoints/old_model_full/best_model.ckpt",
+        "load_path": "{MODELS_PATH}/rucor_checkpoints/old_model_full/best_model.ckpt",
+        "emb_format": "std_emb",
+        "char_vocab": "#char_vocab",
+        "embedder": "#embedder",
+        "embedding_size": 300,
+        "max_antecedents": 250,
+        "max_training_sentences": 50,
+        "max_mention_width": 10,
+        "use_metadata": false,
+        "use_features": true,
+        "model_heads": false,
+        "emb_lowercase": true
+      }
+    ],
+    "out": ["predicted_clusters", "tokenized_sentences"]
+  },
+  "metadata": {
+    "variables": {
+      "ROOT_PATH": "~/.deeppavlov",
+      "DOWNLOADS_PATH": "{ROOT_PATH}/downloads",
+      "MODELS_PATH": "{ROOT_PATH}/coreference"
+    },
+    "requirements": [
+      "{DEEPPAVLOV_PATH}/requirements/tf-gpu.txt",
+      "{DEEPPAVLOV_PATH}/requirements/fasttext.txt"
+    ],
+    "download": [{
+        "url": "http://files.deeppavlov.ai/datasets/coreference_resolution/rucoref_29.10.2015.zip",
+        "subdir": "{DOWNLOADS_PATH}/coreference_resolution/"
+      },
+      {
+        "url": "http://files.deeppavlov.ai/embeddings/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize.bin",
+        "subdir": "{DOWNLOADS_PATH}/embeddings"
+      },
+      {
+        "url": "http://files.deeppavlov.ai/coreference_models/rucor_old_model_full_checkpoint.zip",
+        "subdir": "{MODELS_PATH}/rucor_checkpoints/old_model_full/"
+      },
+      {
+        "url": "http://files.deeppavlov.ai/coreference_models/rucor_char.dict",
+        "subdir": "{MODELS_PATH}"
+      }
+    ]
+  }
+}
