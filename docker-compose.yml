@@ -3,13 +3,13 @@ version: '3'
 services:
     coreference:
         container_name: coreference
-        image: cnstntn/coref_dp_cpu
+        image: cnstntn/coref_dp_cpu:latest
         restart: always
         ports:
             - 3000:3001
     syntax_ner:
         container_name: syntax_ner
-        image: cnstntn/dp_0.14
+        image: cnstntn/dp_0.14:latest
         restart: always
         ports:
             - 3002:3002
