@@ -9,6 +9,7 @@
       {
         "in": ["sentences"],
         "class_name": "nltk_tokenizer",
+        "tokenizer": "word_tokenize",
         "out": ["tokenized_sentences"]
       },
       {
