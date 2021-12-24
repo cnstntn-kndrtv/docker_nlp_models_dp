@@ -7,11 +7,17 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache-dir cython
 RUN pip install --no-cache-dir -r ./requirements.txt
 
+ENV DP_SKIP_NLTK_DOWNLOAD=0
+RUN python -c 'import nltk; \
+    nltk.download("stopwords"); \
+    nltk.download("punkt"); \
+    nltk.download("perluniprops"); \
+    nltk.download("nonbreaking_prefixes")'
+
 ENV CONFIG_SYNT=ru_syntagrus_joint_parsing
+RUN python -m deeppavlov install ${CONFIG_SYNT} \
+    && python -m deeppavlov download ${CONFIG_SYNT}
+
 ENV CONFIG_NER=ner_rus_bert
-
-RUN python -m deeppavlov install ${CONFIG_SYNT} 
-RUN python -m deeppavlov download ${CONFIG_SYNT}
-
-RUN python -m deeppavlov install ${CONFIG_NER}
-RUN python -m deeppavlov download ${CONFIG_NER}
+RUN python -m deeppavlov install ${CONFIG_NER} \
+    && python -m deeppavlov download ${CONFIG_NER}
