@@ -6,6 +6,7 @@ temp
 *.log
 _DEL_*
 _BAK_*
+*.tar.gz
 
 # python and tools
 __pycache__

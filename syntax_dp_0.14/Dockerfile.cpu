@@ -3,7 +3,9 @@ FROM python:3.7-slim as base
 #BUILDER
 FROM base as builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update -yqq \
+    && apt upgrade -yqq \
+    && apt install -yqq --no-install-recommends \
     build-essential \
     gcc \
     git \
