@@ -1,24 +1,71 @@
-FROM python:3.6
+# FROM python:3.6
 
-ENV TZ=Europe/Moscow
+# ENV TZ=Europe/Moscow
 
-RUN apt update \
-    && apt install \
+# RUN apt update \
+#     && apt install \
+#     git \
+#     && apt-get clean
+
+# RUN git clone https://github.com/deepmipt/DeepPavlov.git
+# WORKDIR /DeepPavlov
+# RUN git checkout coref_dp
+
+# COPY ./requirements.txt ./requirements.txt
+# RUN pip install --no-cache-dir .
+# RUN pip install --no-cache-dir git+https://github.com/deepmipt/fastText.git#egg=fastText==0.8.22
+
+# ARG TF_FILE=libtensorflow-cpu-linux-x86_64-1.10.0.tar.gz
+# RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/$TF_FILE
+# RUN tar -C /usr/local -xzf $TF_FILE
+# RUN ldconfig
+
+# WORKDIR /DeepPavlov/deeppavlov/models/coreference_resolution/old_model
+# RUN bash build_op.sh
+
+# WORKDIR /DeepPavlov
+# ENV MODEL_CONFIG=./old_model_full_interact.json
+# COPY $MODEL_CONFIG $MODEL_CONFIG
+# RUN python -m deeppavlov download ${MODEL_CONFIG}
+
+# ENV PORT=3000
+# EXPOSE $PORT
+# CMD python -m deeppavlov riseapi ${MODEL_CONFIG} -p ${PORT}
+
+
+FROM python:3.6-slim as base
+
+# BUILDER
+FROM base as builder
+
+RUN apt-get update -yqq \
+    && apt upgrade -yqq \
+    && apt install -yqq --no-install-recommends \
+    build-essential \
+    gcc \
     git \
+    curl \
+    wget \
     && apt-get clean
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 RUN git clone https://github.com/deepmipt/DeepPavlov.git
 WORKDIR /DeepPavlov
 RUN git checkout coref_dp
 
 COPY ./requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir .
+RUN pip install --upgrade pip\
+    && CRYPTOGRAPHY_DONT_BUILD_RUST=1 \
+    pip install --no-cache-dir .
+
 RUN pip install --no-cache-dir git+https://github.com/deepmipt/fastText.git#egg=fastText==0.8.22
 
 ARG TF_FILE=libtensorflow-cpu-linux-x86_64-1.10.0.tar.gz
-RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/$TF_FILE
-RUN tar -C /usr/local -xzf $TF_FILE
-RUN ldconfig
+RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/$TF_FILE \
+    && tar -C /usr/local -xzf $TF_FILE \
+    && ldconfig
 
 WORKDIR /DeepPavlov/deeppavlov/models/coreference_resolution/old_model
 RUN bash build_op.sh
@@ -26,7 +73,28 @@ RUN bash build_op.sh
 WORKDIR /DeepPavlov
 ENV MODEL_CONFIG=./old_model_full_interact.json
 COPY $MODEL_CONFIG $MODEL_CONFIG
+COPY $MODEL_CONFIG /root/.deeppavlov/old_model_full_interact.json
 RUN python -m deeppavlov download ${MODEL_CONFIG}
+
+ENV DP_SKIP_NLTK_DOWNLOAD=0
+RUN python -c 'import nltk; \
+    nltk.download("stopwords"); \
+    nltk.download("punkt"); \
+    nltk.download("perluniprops"); \
+    nltk.download("nonbreaking_prefixes")'
+
+
+# TARGET
+FROM base
+
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /root/nltk_data /root/nltk_data
+COPY --from=builder /root/.deeppavlov /root/.deeppavlov
+ENV PATH="/opt/venv/bin:$PATH"
+
+ENV MODEL_CONFIG=/root/.deeppavlov/old_model_full_interact.json
+ENV TZ=Europe/Moscow
+ENV DP_SKIP_NLTK_DOWNLOAD=0
 
 ENV PORT=3000
 EXPOSE $PORT
