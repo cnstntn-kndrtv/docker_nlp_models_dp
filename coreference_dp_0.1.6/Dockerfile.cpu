@@ -35,32 +35,27 @@ RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/$TF_FILE \
 WORKDIR /DeepPavlov/deeppavlov/models/coreference_resolution/old_model
 RUN bash build_op.sh
 
-WORKDIR /DeepPavlov
-ENV MODEL_CONFIG=./old_model_full_interact.json
-COPY $MODEL_CONFIG $MODEL_CONFIG
-COPY $MODEL_CONFIG /root/.deeppavlov/old_model_full_interact.json
-RUN python -m deeppavlov download ${MODEL_CONFIG}
 
-ENV DP_SKIP_NLTK_DOWNLOAD=0
+# TARGET
+FROM base
+
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /DeepPavlov /DeepPavlov
+ENV PATH="/opt/venv/bin:$PATH"
+
+ENV DP_SKIP_NLTK_DOWNLOAD=1
 RUN python -c 'import nltk; \
     nltk.download("stopwords"); \
     nltk.download("punkt"); \
     nltk.download("perluniprops"); \
     nltk.download("nonbreaking_prefixes")'
 
+WORKDIR /DeepPavlov
+ENV MODEL_CONFIG=./old_model_full_interact.json
+COPY $MODEL_CONFIG $MODEL_CONFIG
+RUN python -m deeppavlov download ${MODEL_CONFIG}
 
-# TARGET
-FROM base
-
-COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /root/nltk_data /root/nltk_data
-COPY --from=builder /root/.deeppavlov /root/.deeppavlov
-ENV PATH="/opt/venv/bin:$PATH"
-
-ENV MODEL_CONFIG=/root/.deeppavlov/old_model_full_interact.json
 ENV TZ=Europe/Moscow
-ENV DP_SKIP_NLTK_DOWNLOAD=0
-
 ENV PORT=3000
 EXPOSE $PORT
 CMD python -m deeppavlov riseapi ${MODEL_CONFIG} -p ${PORT}
