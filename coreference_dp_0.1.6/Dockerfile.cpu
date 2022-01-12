@@ -1,38 +1,3 @@
-# FROM python:3.6
-
-# ENV TZ=Europe/Moscow
-
-# RUN apt update \
-#     && apt install \
-#     git \
-#     && apt-get clean
-
-# RUN git clone https://github.com/deepmipt/DeepPavlov.git
-# WORKDIR /DeepPavlov
-# RUN git checkout coref_dp
-
-# COPY ./requirements.txt ./requirements.txt
-# RUN pip install --no-cache-dir .
-# RUN pip install --no-cache-dir git+https://github.com/deepmipt/fastText.git#egg=fastText==0.8.22
-
-# ARG TF_FILE=libtensorflow-cpu-linux-x86_64-1.10.0.tar.gz
-# RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/$TF_FILE
-# RUN tar -C /usr/local -xzf $TF_FILE
-# RUN ldconfig
-
-# WORKDIR /DeepPavlov/deeppavlov/models/coreference_resolution/old_model
-# RUN bash build_op.sh
-
-# WORKDIR /DeepPavlov
-# ENV MODEL_CONFIG=./old_model_full_interact.json
-# COPY $MODEL_CONFIG $MODEL_CONFIG
-# RUN python -m deeppavlov download ${MODEL_CONFIG}
-
-# ENV PORT=3000
-# EXPOSE $PORT
-# CMD python -m deeppavlov riseapi ${MODEL_CONFIG} -p ${PORT}
-
-
 FROM python:3.6-slim as base
 
 # BUILDER
